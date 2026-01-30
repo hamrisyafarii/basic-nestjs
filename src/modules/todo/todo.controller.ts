@@ -7,18 +7,26 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.gurad';
+import { UserResponseEntity } from '../auth/entities/user.reponse.entity';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('todos')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  async getAllTodos(@Query() queryTodo: GetTodoDto) {
+  @UseGuards(JwtAuthGuard) //Contoh Guard salah satu route
+  async getAllTodos(
+    @Query() queryTodo: GetTodoDto,
+    @CurrentUser() user: UserResponseEntity, // Get current user, jika mau dapat data user juga
+  ) {
     const todos = await this.todoService.getAllTodos(queryTodo);
 
     return todos;
