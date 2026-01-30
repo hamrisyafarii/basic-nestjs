@@ -18,8 +18,10 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  getAllTodos(@Query() queryTodo: GetTodoDto) {
-    return this.todoService.getAllTodos(queryTodo);
+  async getAllTodos(@Query() queryTodo: GetTodoDto) {
+    const todos = await this.todoService.getAllTodos(queryTodo);
+
+    return todos;
   }
 
   @Post()

@@ -3,40 +3,77 @@ import { TodoRepository } from './todo.repository';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { ApiResponse } from 'src/common/interfaces/response.interface';
+import { TodoResponseEntity } from './entities/todo.entity';
 
 @Injectable()
 export class TodoService {
   constructor(private readonly todoRepository: TodoRepository) {}
 
-  getAllTodos(getQueryTodo: GetTodoDto) {
+  async getAllTodos(
+    getQueryTodo: GetTodoDto,
+  ): Promise<ApiResponse<TodoResponseEntity[]>> {
     if (getQueryTodo.overdue) {
-      return this.todoRepository.findOverdueTodo();
+      const todos = await this.todoRepository.findOverdueTodo();
+
+      return {
+        message: 'Success with overdue',
+        data: todos,
+      };
     }
 
-    return this.todoRepository.findAll();
+    const todos = await this.todoRepository.findAll();
+
+    return {
+      message: 'Success',
+      data: todos,
+    };
   }
 
-  createTodo(createTodoDto: CreateTodoDto) {
-    return this.todoRepository.create(createTodoDto);
+  async createTodo(
+    createTodoDto: CreateTodoDto,
+  ): Promise<ApiResponse<TodoResponseEntity>> {
+    const todo = await this.todoRepository.create(createTodoDto);
+
+    return {
+      message: 'Success create new Todo',
+      data: todo,
+    };
   }
 
-  async updateTodo(todoId: number, updateTodoBody: UpdateTodoDto) {
+  async updateTodo(
+    todoId: number,
+    updateTodoBody: UpdateTodoDto,
+  ): Promise<ApiResponse<TodoResponseEntity>> {
     const todoExists = await this.todoRepository.findById(todoId);
 
     if (!todoExists) {
       throw new BadRequestException('Todo dose not exists');
     }
 
-    return this.todoRepository.updateById(todoId, updateTodoBody);
+    const updatedTodo = await this.todoRepository.updateById(
+      todoId,
+      updateTodoBody,
+    );
+
+    return {
+      message: 'Data todo updated',
+      data: updatedTodo,
+    };
   }
 
-  async deleteTodo(todoId: number) {
+  async deleteTodo(todoId: number): Promise<ApiResponse<null>> {
     const todoExists = await this.todoRepository.findById(todoId);
 
     if (!todoExists) {
       throw new BadRequestException('Todo dose not exists');
     }
 
-    return await this.todoRepository.delete(todoId);
+    await this.todoRepository.delete(todoId);
+
+    return {
+      message: `todo ${todoExists.label} deleted`,
+      data: null,
+    };
   }
 }
