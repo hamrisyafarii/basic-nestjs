@@ -13,7 +13,7 @@ import { TodoService } from './todo.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.gurad';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserResponseEntity } from '../auth/entities/user.reponse.entity';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
