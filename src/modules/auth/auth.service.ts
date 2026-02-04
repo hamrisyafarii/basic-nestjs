@@ -52,7 +52,7 @@ export class AuthService {
     const userResponse: UserResponseEntity = {
       id: user.id,
       email: user.email,
-      username: user.username,
+      username: user.username ?? '',
       name: user.name || undefined,
     };
 
@@ -75,7 +75,7 @@ export class AuthService {
     // Verify password
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
-      user.password,
+      user.password ?? '',
     );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -92,7 +92,7 @@ export class AuthService {
     const userResponse: UserResponseEntity = {
       id: user.id,
       email: user.email,
-      username: user.username,
+      username: user.username ?? '',
       name: user.name || undefined,
     };
 
@@ -105,6 +105,36 @@ export class AuthService {
     };
   }
 
+  // Validate OAuth user (Google)
+  async validateOAuthUser(profile: {
+    googleId: string;
+    email: string;
+    name?: string;
+    avatar?: string;
+    provider: string;
+  }) {
+    // Check if user exists by Google ID
+    let user = await this.authRepository.findByGoogleId(profile.googleId);
+
+    if (user) {
+      return user;
+    }
+
+    // Check if user exists by email (maybe registered with email/password before)
+    user = await this.authRepository.findByEmail(profile.email);
+
+    if (user) {
+      // Link Google account to existing user
+      // You can update user with Google ID here if needed
+      return user;
+    }
+
+    // Create new user
+    user = await this.authRepository.createOAuthUser(profile);
+
+    return user;
+  }
+
   async validateUser(userId: number): Promise<UserResponseEntity | null> {
     const user = await this.authRepository.findById(userId);
 
@@ -115,12 +145,12 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      username: user.username,
+      username: user.username || '',
       name: user.name || undefined,
     };
   }
 
-  private generateToken(userId: number, email: string): string {
+  generateToken(userId: number, email: string): string {
     const payload = { sub: userId, email };
     return this.jwtService.sign(payload);
   }

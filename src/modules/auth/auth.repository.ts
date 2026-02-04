@@ -41,4 +41,30 @@ export class AuthRepository {
       },
     });
   }
+
+  // find Google ID
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.databaseService.user.findUnique({
+      where: { googleId },
+    });
+  }
+
+  async createOAuthUser(data: {
+    email: string;
+    name?: string;
+    googleId?: string;
+    avatar?: string;
+    provider: string;
+  }): Promise<User> {
+    return this.databaseService.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        googleId: data.googleId,
+        avatar: data.avatar,
+        provider: data.provider,
+        emailVerified: true, // OAuth users are auto-verified
+      },
+    });
+  }
 }
