@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Post,
   Req,
   Res,
@@ -11,11 +10,11 @@ import {
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { UserResponseEntity } from './entities/user.reponse.entity';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import type { Request, Response } from 'express';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -47,22 +46,17 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthRedirect(@Req() req: Request, @Res() res: Response): void {
+  googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const user = req.user;
 
-    if (!user) {
-      res.status(HttpStatus.UNAUTHORIZED).json({
-        statusCode: HttpStatus.UNAUTHORIZED,
-        message: 'Authentication failed',
-        data: null,
-      });
-      return;
-    }
+    const token = this.authService.generateToken(user!.id, user!.email);
 
-    // generate jwt token
-    const accessToken = this.authService.generateToken(user.id, user.email);
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false, // true in production HTTPS
+      sameSite: 'lax',
+    });
 
-    // Redirect to frontend with token
-    res.redirect(`http://localhost:5173/auth/callback?token=${accessToken}`);
+    res.redirect('http://localhost:5173/dashboard');
   }
 }
